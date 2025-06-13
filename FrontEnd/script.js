@@ -29,8 +29,8 @@ async function loadWorks() {
         const response = await fetch("http://localhost:5678/api/works");
         const works = await response.json();
 
-        renderGallery(works);       // on affiche avec la fonction dédiée
-        loadCategories(works);      // on charge les filtres
+        renderGallery(works);       // on affiche 
+        loadCategories(works);      // on charge les catégories filtres
     } catch (error) {
         console.error("Erreur lors du chargement des projets :", error);
     }
@@ -122,4 +122,105 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // GESTION DE LA MODALE
+document.addEventListener("DOMContentLoaded", () => {
+	const modifier = document.querySelector(".modifier-section");
+	const modal = document.getElementById("modal");
+	const modalWrapper = document.querySelector(".modal-wrapper");
+	const closeBtn = document.querySelector(".modal-close");
 
+	if (!modifier || !modal || !modalWrapper || !closeBtn) return;
+
+	modifier.addEventListener("click", () => {
+		modal.style.display = "flex";
+		modal.setAttribute("aria-hidden", "false");
+	});
+
+	closeBtn.addEventListener("click", () => {
+		modal.style.display = "none";
+		modal.setAttribute("aria-hidden", "true");
+	});
+
+	modal.addEventListener("click", (e) => {
+		if (!modalWrapper.contains(e.target)) {
+			modal.style.display = "none";
+			modal.setAttribute("aria-hidden", "true");
+		}
+	});
+});
+document.addEventListener("DOMContentLoaded", () => {
+	const token = localStorage.getItem("token");
+	const modifier = document.querySelector(".modifier-section");
+
+	if (!token && modifier) {
+		modifier.style.display = "none";
+	}
+});
+// Génération des miniatures dans la modale
+function renderModalGallery(works) {
+    const modalGallery = document.querySelector(".modal-gallery");
+    modalGallery.innerHTML = ""; // Vide l'ancienne galerie
+
+    works.forEach(work => {
+        const figure = document.createElement("figure");
+        figure.classList.add("modal-figure");
+
+        const img = document.createElement("img");
+        img.src = work.imageUrl;
+        img.alt = work.title;
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.classList.add("delete-btn");
+        deleteBtn.innerHTML = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="9" height="11" viewBox="0 0 9 11" fill="none">
+    <path d="M2.71607 0.35558C2.82455 0.136607 3.04754 0 3.29063 0H5.70938C5.95246 0 6.17545 0.136607 6.28393 0.35558L6.42857 0.642857H8.35714C8.71272 0.642857 9 0.930134 9 1.28571C9 1.64129 8.71272 1.92857 8.35714 1.92857H0.642857C0.287277 1.92857 0 1.64129 0 1.28571C0 0.930134 0.287277 0.642857 0.642857 0.642857H2.57143L2.71607 0.35558ZM0.642857 2.57143H8.35714V9C8.35714 9.70915 7.78058 10.2857 7.07143 10.2857H1.92857C1.21942 10.2857 0.642857 9.70915 0.642857 9V2.57143ZM2.57143 3.85714C2.39464 3.85714 2.25 4.00179 2.25 4.17857V8.67857C2.25 8.85536 2.39464 9 2.57143 9C2.74821 9 2.89286 8.85536 2.89286 8.67857V4.17857C2.89286 4.00179 2.74821 3.85714 2.57143 3.85714ZM4.5 3.85714C4.32321 3.85714 4.17857 4.00179 4.17857 4.17857V8.67857C4.17857 8.85536 4.32321 9 4.5 9C4.67679 9 4.82143 8.85536 4.82143 8.67857V4.17857C4.82143 4.00179 4.67679 3.85714 4.5 3.85714ZM6.42857 3.85714C6.25179 3.85714 6.10714 4.00179 6.10714 4.17857V8.67857C6.10714 8.85536 6.25179 9 6.42857 9C6.60536 9 6.75 8.85536 6.75 8.67857V4.17857C6.75 4.00179 6.60536 3.85714 6.42857 3.85714Z" fill="white"/>
+  </svg>`;
+        deleteBtn.addEventListener("click", () => deleteWork(work.id, figure));
+
+        figure.appendChild(img);
+        figure.appendChild(deleteBtn);
+        modalGallery.appendChild(figure);
+    });
+}
+async function deleteWork(id, figureElement) {
+    const token = localStorage.getItem("token");
+
+    try {
+        const response = await fetch(`http://localhost:5678/api/works/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            // Supprimer dans la modale
+            figureElement.remove();
+
+            // Supprimer dans la galerie principale
+            const mainGallery = document.querySelectorAll(".gallery figure");
+            mainGallery.forEach(fig => {
+                const img = fig.querySelector("img");
+                if (img && img.src.includes(id)) {
+                    fig.remove();
+                }
+            });
+        } else {
+            alert("Échec de la suppression.");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la suppression :", error);
+    }
+}
+document.querySelector(".modifier-section").addEventListener("click", async () => {
+    const modal = document.getElementById("modal");
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+
+    try {
+        const response = await fetch("http://localhost:5678/api/works");
+        const works = await response.json();
+        renderModalGallery(works);
+    } catch (error) {
+        console.error("Erreur lors du chargement des projets :", error);
+    }
+});

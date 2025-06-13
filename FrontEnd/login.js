@@ -1,4 +1,4 @@
-// Je récupère le legin et le message d'erreur
+// Je récupère le login et le message d'erreur
 const form = document.getElementById("login-form");
 const errorMessage = document.getElementById("error-message");
 
@@ -35,4 +35,3 @@ form.addEventListener("submit", async (event) => {
 	}
 });
 
-// Mise en place en place l'affichage conditionnel login/logout sur la page d’accueil en fonction du token dans le localStorage.
