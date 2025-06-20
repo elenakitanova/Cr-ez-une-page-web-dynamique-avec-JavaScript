@@ -342,6 +342,14 @@ footer nav ul {
 	padding: 50px;
 }
 
+/* --- Centrage pour la première vue de la modale (Vue Galerie) --- */
+.modal-content.gallery-view { 
+    display: flex;         
+    flex-direction: column; /* Empile les enfants verticalement */
+    align-items: center;    /* Centre les enfants horizontalement */
+    
+}
+
 /* Bouton de fermeture (croix) */
 .modal-close {
 	position: absolute;
@@ -438,4 +446,198 @@ footer nav ul {
 
 .modal-add-btn:hover {
 	background: #144D43; /* Assombrissement au survol */
+}
+/* Ajout du style pour cacher la première modale*/
+
+.hidden {
+    display: none !important;
+}
+
+/* --- Styles pour la deuxième vue de la modale (Formulaire d'ajout de photo) --- */
+
+/* Conteneur pour la deuxième vue (le formulaire lui-même) */
+/* Cible la div avec les classes 'modal-content' ET 'add-photo' */
+.modal-content.add-photo {
+    width: 630px; /* Largeur de la vue, peut être ajustée pour s'adapter au modal-wrapper */
+    height: 670px; /* Hauteur de la vue, peut être ajustée */
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #FFF; /* Fond blanc, conforme à la maquette */
+
+    /* Pour centrer le contenu du formulaire (titre, zone d'upload, champs) */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centre les éléments horizontalement */
+    padding-top: 20px; /* Espace interne en haut */
+    box-sizing: border-box; /* S'assure que le padding est inclus dans la largeur/hauteur */
+}
+
+/* Titre H3 "Ajout photo" */
+/* Cible le h3 à l'intérieur de la vue d'ajout de photo */
+.modal-content.add-photo h3 {
+    color: #000;
+    text-align: center;
+    font-family: "Work Sans";
+    font-size: 26px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: 20px; /* Espace depuis le haut de la vue */
+    margin-bottom: 30px; /* Espace en dessous du titre */
+}
+
+
+/* Zone de téléchargement de photo (le label qui est cliquable) */
+.image-upload-label { /* Cible l'élément HTML <label> qui a cette classe */
+    width: 420px;
+    height: 169px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    background: #E8F1F6; /* Arrière-plan bleu clair selon Figma */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* Indispensable pour positionner l'input de fichier caché à l'intérieur */
+    overflow: hidden; /* S'assure que l'input caché ne dépasse pas */
+    cursor: pointer;
+    margin-bottom: 20px; /* Espace sous la zone de téléchargement */
+}
+
+/* Icône à l'intérieur de la zone de téléchargement */
+.image-upload-label .upload-icon { /* Cible l'icône à l'intérieur du label */
+    color: #B9C5CC; /* Couleur grise pour l'icône */
+    font-size: 76px; /* Ajuste la taille de l'icône */
+    margin-bottom: 10px; /* Espace entre l'icône et le texte/bouton */
+}
+
+/* Texte "+ Ajouter photo" (qui est le span dans le label) */
+.image-upload-label span { /* Cible le <span> qui contient le texte "Ajouter photo" */
+    width: 173px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 50px;
+    background: #CBD6DC; /* Arrière-plan gris selon Figma */
+    color: #306685; /* Couleur du texte pour le bouton */
+    font-family: "Work Sans";
+    font-size: 14px;
+    font-weight: 500;
+    display: flex; /* Utilisé pour centrer le texte à l'intérieur du span */
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px; /* Espace sous l'icône */
+}
+
+/* Texte "jpg, png : 4mo max" */
+.image-upload-label p { /* Cible le <p> qui contient le texte d'information */
+    color: #444444; /* Couleur gris foncé */
+    text-align: center;
+    font-family: "Work Sans";
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-top: 7px; /* Espace sous le texte du bouton */
+}
+
+/* Input de fichier caché (l'input type="file" réel) */
+#image { /* Cible l'input par son ID */
+    opacity: 0; /* Le rend complètement transparent */
+    position: absolute; /* Le positionne au-dessus du label pour qu'il soit cliquable */
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    z-index: 1; /* S'assure qu'il est au-dessus des autres éléments du label pour le clic */
+}
+
+/* Le conteneur principal du formulaire d'ajout de photo */
+#add-work-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centre horizontalement les éléments du formulaire à l'intérieur */
+    width: 100%; /* Prend toute la largeur disponible de son parent */
+    max-width: 420px; /* Limite la largeur maximale du formulaire à 420px */
+    box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur/hauteur totale */
+}
+
+/* Labels des champs du formulaire (Titre et Catégorie) */
+#add-work-form label {
+    color: #3D3D3D;
+    font-family: "Work Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    align-self: flex-start; 
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+/* Champs du formulaire (inputs et select) */
+#add-work-form input[type="text"],
+#add-work-form select {
+    width: 100%; /* Prend toute la largeur maximale définie par le formulaire */
+	min-width: 420px; 
+    height: 50px;
+    border-radius: 0px;
+    border: 0px solid #ddd; /* Bordure gris clair */
+    padding: 0 15px; /* Padding interne */
+    box-sizing: border-box; /* Inclut le padding dans la largeur/hauteur */
+    font-size: 1.2em;
+    color: #3D3D3D;
+    font-family: "Work Sans";
+    font-weight: 500;
+	box-shadow: 0px 4px 14px 0px rgba(0, 0, 0, 0.09); 
+}
+
+/* Ligne de séparateur */
+#add-work-form hr {
+    width: 420px;
+    height: 1px;
+    background: #B3B3B3; /* Ligne de séparateur grise */
+    border: none; /* Supprime la bordure hr par défaut */
+    margin: 30px 0; /* Espace au-dessus et en dessous de la ligne */
+}
+
+/* Bouton Valider */
+/* Cible le bouton de soumission du formulaire, qui a la classe 'submit-btn' */
+#add-work-form .submit-btn { 
+    width: 237px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 60px;
+    background: #A7A7A7; /* Arrière-plan gris selon Figma */
+    color: white; /* Couleur du texte blanc */
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 20px; /* Espace au-dessus du bouton */
+}
+
+#add-work-form .submit-btn:hover {
+    background-color: #8C8C8C; /* Un peu plus foncé au survol */
+}
+
+/* Style du message d'erreur */
+#form-error {
+    margin-top: 10px;
+    text-align: center;
+    color: red;
+    font-size: 12px;
+}
+
+/* Flèche de retour de la modale */
+.modal-back {
+    position: absolute;
+    top: 20px;
+    left: 20px; /* Place la flèche à gauche */
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10; /* Pour s'assurer qu'elle est au-dessus des vues */
 }
