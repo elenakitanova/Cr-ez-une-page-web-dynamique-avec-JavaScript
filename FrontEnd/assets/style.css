@@ -190,6 +190,7 @@ footer nav ul {
 
 .filters {
 	text-align: center;
+	justify-content: center;
 	margin-bottom: 30px;
 }
 
@@ -488,9 +489,9 @@ footer nav ul {
 
 
 /* Zone de téléchargement de photo (le label qui est cliquable) */
-.image-upload-label { /* Cible l'élément HTML <label> qui a cette classe */
+#image-preview-container { /* Cible l'élément HTML <label> qui a cette classe */
     width: 420px;
-    height: 169px;
+    height: 210px;
     flex-shrink: 0;
     border-radius: 3px;
     background: #E8F1F6; /* Arrière-plan bleu clair selon Figma */
@@ -505,14 +506,14 @@ footer nav ul {
 }
 
 /* Icône à l'intérieur de la zone de téléchargement */
-.image-upload-label .upload-icon { /* Cible l'icône à l'intérieur du label */
+#image-preview-container .upload-icon { /* Cible l'icône à l'intérieur du label */
     color: #B9C5CC; /* Couleur grise pour l'icône */
     font-size: 76px; /* Ajuste la taille de l'icône */
     margin-bottom: 10px; /* Espace entre l'icône et le texte/bouton */
 }
 
 /* Texte "+ Ajouter photo" (qui est le span dans le label) */
-.image-upload-label span { /* Cible le <span> qui contient le texte "Ajouter photo" */
+#image-preview-container span { /* Cible le <span> qui contient le texte "Ajouter photo" */
     width: 173px;
     height: 36px;
     flex-shrink: 0;
@@ -529,7 +530,7 @@ footer nav ul {
 }
 
 /* Texte "jpg, png : 4mo max" */
-.image-upload-label p { /* Cible le <p> qui contient le texte d'information */
+#image-preview-container p { /* Cible le <p> qui contient le texte d'information */
     color: #444444; /* Couleur gris foncé */
     text-align: center;
     font-family: "Work Sans";
@@ -549,7 +550,7 @@ footer nav ul {
     top: 0;
     left: 0;
     cursor: pointer;
-    z-index: 1; /* S'assure qu'il est au-dessus des autres éléments du label pour le clic */
+    z-index: 10; /* S'assure qu'il est au-dessus des autres éléments du label pour le clic */
 }
 
 /* Le conteneur principal du formulaire d'ajout de photo */

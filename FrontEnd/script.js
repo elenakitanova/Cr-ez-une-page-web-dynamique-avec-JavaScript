@@ -1,6 +1,8 @@
 // GESTION DE LA GALERIE
 // Je récupère la galerie
 const gallery = document.querySelector(".gallery");
+var works = [];
+var categories = [];
 
 // J'affiche dynamiquement les projets dans la galerie
 function renderGallery(works) {
@@ -27,7 +29,7 @@ function renderGallery(works) {
 async function loadWorks() {
     try {
         const response = await fetch("http://localhost:5678/api/works");
-        const works = await response.json();
+        works = await response.json();
 
         renderGallery(works);       // on affiche 
         loadCategories(works);      // on charge les catégories filtres
@@ -44,7 +46,7 @@ const filtersContainer = document.querySelector(".filters"); // Je récupère le
 async function loadCategories(works) {
     try {
         const response = await fetch("http://localhost:5678/api/categories"); // j'appelle l’API des catégories qui renvoie un tableau de catégories
-        const categories = await response.json(); // On transforme la réponse de l’API (au format JSON brut) en un tableau JavaScript exploitable
+        categories = await response.json(); // On transforme la réponse de l’API (au format JSON brut) en un tableau JavaScript exploitable
 
         // Je crée le bouton "Tous" 
         const allBtn = document.createElement("button"); // Je récupère le bouton
@@ -83,66 +85,161 @@ function updateActiveButton(activeBtn) { // Je définis la fonction qui prend en
 // Lancement au démarrage
 loadWorks();
 
-// GESTION DU LOG IN/LOG OUT
+function setupImageInputHandler() {
+    if (imageInput) { // On s'assure que imageInput existe bien
+        imageInput.onchange = function() { // onchange est utilisé pour remplacer un éventuel ancien gestionnaire
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Affiche l'image et recrée l'input file transparent PAR-DESSUS
+                    imagePreviewContainer.innerHTML = `<img src="${e.target.result}" alt="Prévisualisation" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        <input type="file" id="image" name="image" accept="image/png, image/jpeg" required style="opacity: 0; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; z-index: 10;" />`;
 
-// On vérifie si l'utilisateur est connecté => on récupère le "ticket d'identité" de l'utilisateur pour savoir s'il est connecté ou non
-const token = localStorage.getItem("token"); // chercher la donnée stockée sous la clé "token" dans l'espace de stockage du navigateur
-const loginLink = document.getElementById("login-link"); // je sélectionne l’élément HTML qui a l’attribut id="login-link" du lien "login" dans le menu <nav>
+                    // IMPORTANT : On doit récupérer le NOUVEL input[type="file"] après la modification de innerHTML
+                    imageInput = document.getElementById("image");
 
-if (token) {
-    // Si connecté : changer le lien login en logout
-    loginLink.textContent = "logout";
-    loginLink.href = "#";
-    loginLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        localStorage.removeItem("token"); // Supprime le token
-        window.location.reload(); // Recharge la page pour revenir à l'état "déconnecté"
-    });
+                    // Réattache l'écouteur onchange au NOUVEL input
+                    // 'this' ici fait référence à la fonction 'onchange' elle-même
+                    imageInput.onchange = this; 
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Si pas de fichier, réinitialise l'aperçu à l'état initial
+                imagePreviewContainer.innerHTML = `
+                    <i class="fa-regular fa-image upload-icon"></i>
+                    <span>+ Ajouter photo</span>
+                    <p class="file-size-info">jpg, png : 4mo max</p>
+                    <img id="preview-image" src="#" alt="Prévisualisation du projet" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+                    <input type="file" id="image" name="image" accept="image/png, image/jpeg" required />
+                `;
+                imageInput = document.getElementById("image"); // Récupère le NOUVEL input
+                imageInput.onchange = this; // Réattache l'écouteur
+            }
+            checkFormValidity(); // Vérifie la validité du formulaire après l'action sur l'image
+        };
+    }
 }
 
-// GESTION DU MASQUE DES FILTRES UNE FOIS USER CONNECTÉ
-
-// On vérifie si l'utilisateur est connecté => on récupère le tocken "ticket d'identité"
+// GESTION DU LOG IN/LOG OUT ET DU MASQUE DES FILTRES UNE FOIS USER CONNECTÉ
 document.addEventListener("DOMContentLoaded", () => {
-	const token = localStorage.getItem("token");
+    // Je récupère le jeton (token) pour vérifier si l'utilisateur est connecté
+    const token = localStorage.getItem("token");
+    
+    // Je sélectionne les éléments DOM nécessaires
+    const loginLink = document.getElementById("login-link");//la balise login
+    const filtersContainer = document.querySelector(".filters"); //les filtres
+    const modifierSection = document.querySelector(".modifier-section"); //bouton "modifier"
 
-	if (token) {
-		// Masquer les filtres
-		const filters = document.querySelector(".filters");
-		if (filters) {
-			filters.style.display = "none";
-		}
+    // Ajuster l'interface utilisateur en fonction de l'état de connexion de l'utilisateur
+    if (token) {
+        // Si connecté : Changer "login" en "logout" et configurer la fonctionnalité de déconnexion
+        if (loginLink) {
+            loginLink.textContent = "logout";
+            loginLink.href = "#"; // Empêche la navigation par défaut
+            loginLink.addEventListener("click", (e) => {
+                e.preventDefault(); // Empêche le lien d'agir comme un lien normal
+                localStorage.removeItem("token"); // Supprime le jeton
+                window.location.reload(); // Recharge la page pour refléter l'état déconnecté
+            });
+        }
+        
+        // Masquer les filtres
+        if (filtersContainer) {
+            filtersContainer.style.display = "none";
+        }
 
-		// Afficher toute la barre de modification (le crayon + bouton)
-		const modifierSection = document.querySelector(".modifier-section");
-    if (modifierSection) {
-	    modifierSection.style.display = "flex";
-}
-	}
+        // Afficher la section de modification
+        if (modifierSection) {
+            modifierSection.style.display = "flex";
+        }
+    } else {
+        // Si déconnecté : S'assurer que le lien "login" est correct et que les éléments de l'interface utilisateur sont masqués
+        if (loginLink) {
+            loginLink.textContent = "login";
+            loginLink.href = "login.html"; // S'assurer qu'il pointe vers la page de connexion
+            // Pas besoin d'écouteur de clic ici, l'attribut href gère la navigation
+        }
+
+        // S'assurer que les filtres sont visibles
+        if (filtersContainer) {
+            filtersContainer.style.display = "flex";
+        }
+
+        // S'assurer que la section de modification est masquée
+        if (modifierSection) {
+            modifierSection.style.display = "none";
+        }
+    }
 });
 
 // GESTION DE LA MODALE
 // Déclaration des éléments de la modale
-document.addEventListener("DOMContentLoaded", () => {
-    const modifier = document.querySelector(".modifier-section");// le bouton "modifier"
-    const modal = document.getElementById("modal"); //la partie transparente (aside)
-    const modalWrapper = document.querySelector(".modal-wrapper"); //le carré blanc avec le contenu
-    const closeBtn = document.querySelector(".modal-close"); // la croix de fermeture
+    // Déclaration des éléments de la modale (maintenant globales pour cette section)
+    const modal = document.getElementById("modal");
+    const modalWrapper = document.querySelector(".modal-wrapper");
+    const closeBtn = document.querySelector(".modal-close");
+    const modifierBtn = document.querySelector(".modifier-section"); // <-- Renommée de 'modifier' à 'modifierBtn'
+    
     
     // Déclaration des éléments pour la navigation entre les vues de la modale
-    const addPhotoBtn = document.querySelector(".modal-add-btn"); //le bouton "Ajouter photo"
-    const galleryView = document.querySelector(".gallery-view"); // la première vue (galerie)
-    const addPhotoView = document.querySelector(".add-photo");   // la deuxième vue (formulaire d'ajout)
-    const backBtn = document.querySelector(".modal-back"); // la flèche de retour
+    const addPhotoBtn = document.querySelector(".modal-add-btn");
+    const galleryView = document.querySelector(".modal-content.gallery-view");
+    const addPhotoView = document.querySelector(".modal-content.add-photo");
+    const backBtn = document.querySelector(".modal-back");
+
+    // Éléments du formulaire d'ajout
+    let imageInput = null; //let nous permet de modifier la valeur de imageInput plus tard
+    //On le met à null car l'élément HTML n'existe pas encore au chargement initial de la page
+    const titleInput = document.getElementById("title");
+    const categorySelect = document.getElementById("category");
+    const submitButton = document.querySelector("#add-work-form .submit-btn");
+    const formError = document.getElementById("form-error");
+    const imagePreviewContainer = document.getElementById("image-preview-container"); 
+    const previewImage = document.getElementById("preview-image"); 
     
+    document.addEventListener("DOMContentLoaded", () => {
+
+    categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.name;
+      categorySelect.appendChild(option);
+    
+     });
+
     // Sécurité : Vérifier que tous les éléments nécessaires existent
-    if (!modifier || !modal || !modalWrapper || !closeBtn || !addPhotoBtn || !galleryView || !addPhotoView || !backBtn) {
+    if (!modifierBtn || !modal || !modalWrapper || !closeBtn || !addPhotoBtn || !galleryView || !addPhotoView || !backBtn || !imageInput || !titleInput || !categorySelect || !submitButton || !formError || !imagePreviewContainer || !previewImage) {
         console.error("Un ou plusieurs éléments de la modale sont introuvables. La modale ne fonctionnera pas correctement.");
-        return; // Arrête l'exécution si des éléments essentiels manquent
+        return;
+    } // Arrête l'exécution si des éléments essentiels manquent
+    
+});
+    // --- Ajout de la fonction checkFormValidity() et de ses écouteurs VÉRIFICATION DU FORMULAIRE d'activation du bouton VALIDER ---
+    function checkFormValidity() {
+        // Vérifie si un fichier a été sélectionné pour l'image
+        const isImageSelected = imageInput.files.length > 0;
+        
+        // Vérifie si le champ titre n'est pas vide (après avoir retiré les espaces)
+        const isTitleFilled = titleInput.value.trim() !== "";
+        
+        // Vérifie si une catégorie valide a été sélectionnée (c'est-à-dire pas l'option vide par défaut)
+        const isCategorySelected = categorySelect.value !== "";
+
+        if (isImageSelected && isTitleFilled && isCategorySelected) {
+            submitButton.disabled = false;
+            submitButton.style.backgroundColor = "#1D6154"; // Vert
+            submitButton.style.cursor = "pointer";
+        } else {
+            submitButton.disabled = true;
+            submitButton.style.backgroundColor = "#A7A7A7"; // Gris
+            submitButton.style.cursor = "not-allowed";
+        }
     }
 
+
     // Ouverture de la modale (au clic sur le bouton "modifier")
-    modifier.addEventListener("click", async () => { 
+    modifierBtn.addEventListener("click", async () => { 
         modal.style.display = "flex"; //la modale principale (#modal) est rendue visible (display: flex;)
         modal.setAttribute("aria-hidden", "false");
         
@@ -151,14 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
         addPhotoView.classList.add("hidden"); //La deuxième view (add photo) est cachée
         
         // Recharge les projets dans la galerie de la modale à chaque ouverture
-        try {
-            const response = await fetch("http://localhost:5678/api/works");
-            const works = await response.json();
+        
             renderModalGallery(works);
-        } catch (error) {
-            console.error("Erreur lors du chargement des projets pour la modale :", error);
-        }
-    });
+       
+   });
 
     // Fermeture de la modale par la croix
     closeBtn.addEventListener("click", () => {
@@ -168,15 +261,21 @@ document.addEventListener("DOMContentLoaded", () => {
         galleryView.classList.remove("hidden"); // Affiche la vue galerie (pour la prochaine ouverture)
         addPhotoView.classList.add("hidden"); // Cache la vue formulaire
         backBtn.classList.add("hidden"); // Cache la flèche de retour
+        
          // Réinitialiser le formulaire et les messages d'erreur
     document.getElementById("add-work-form").reset();
-    document.getElementById("image-preview-container").innerHTML = `
+    imagePreviewContainer.innerHTML = `
         <i class="fa-regular fa-image upload-icon"></i>
         <span>+ Ajouter photo</span>
         <p>jpg, png : 4mo max</p>
+        <img id="preview-image" src="#" alt="Prévisualisation du projet" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
         <input type="file" id="image" name="image" accept="image/png, image/jpeg" required />
     `;
+    imageInput = document.getElementById("image"); 
+    setupImageInputHandler(); 
+
     document.getElementById("form-error").textContent = "";
+    checkFormValidity(); // Appel de checkFormValidity() lors de la fermeture et du retour en arrière, bouton VALIDER 
     });
 
     // Fermeture de la modale en cliquant en dehors du contenu principal
@@ -202,12 +301,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
     // Passage de la première vue (galerie) à la deuxième vue (ajout photo)
-    addPhotoBtn.addEventListener("click", () => { // Quand on click sur le bouton "Ajouter Photo"
-        galleryView.classList.add("hidden");  // Cache la galerie
-        addPhotoView.classList.remove("hidden");  // Affiche le formulaire d'ajout
-        backBtn.classList.remove("hidden");  // Affiche la flèche de retour
-        loadCategoriesForForm(); // Charge dynamiquement les catégories pour le formulaire
-    });
+    addPhotoBtn.addEventListener("click", () => {
+    galleryView.classList.add("hidden");
+    addPhotoView.classList.remove("hidden");
+    backBtn.classList.remove("hidden");
+
+    // 1. On remet le contenu initial de la zone d'upload, qui inclut le <input type="file">
+    imagePreviewContainer.innerHTML = `
+        <i class="fa-regular fa-image upload-icon"></i>
+        <span>+ Ajouter photo</span>
+        <p class="file-size-info">jpg, png : 4mo max</p>
+        <img id="preview-image" src="#" alt="Prévisualisation du projet" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+        <input type="file" id="image" name="image" accept="image/png, image/jpeg" required />
+    `;
+
+    // 2. On récupère le 'imageInput' qui vient d'être créé
+    imageInput = document.getElementById("image"); 
+
+    // 3. On attache le gestionnaire de prévisualisation à ce nouvel 'imageInput'
+    setupImageInputHandler(); 
+
+    titleInput.addEventListener("input", checkFormValidity);
+    categorySelect.addEventListener("change", checkFormValidity);
+
+    loadCategoriesForForm(); // Charge dynamiquement les catégories pour le formulaire
+    checkFormValidity(); // Vérifie la validité du formulaire au moment de l'ouverture
+});
 
     // Retour de la deuxième vue (ajout photo) à la première vue (galerie)
     backBtn.addEventListener("click", () => { //au clicke sur la flèche de retour
@@ -225,36 +344,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("form-error").textContent = ""; // Efface les messages d'erreur
 });
 
-    // Prévisualisation de l'image dans le formulaire d'ajout
-    const imageInput = document.getElementById("image");
-    const imagePreview = document.getElementById("image-preview-container");
+ 
 
-    if (imageInput && imagePreview) {
-        imageInput.addEventListener("change", function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Nettoie l'ancien contenu et affiche la nouvelle image
-                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Prévisualisation" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Si aucun fichier n'est sélectionné, réinitialise l'aperçu
-                imagePreview.innerHTML = `<span>+</span><p>Ajouter une photo</p>`;
-            }
-        });
-    }
-});
 //Masquer la section "modifier" si on n’est pas connecté
-    document.addEventListener("DOMContentLoaded", () => { //on s’assure que le DOM est chargé avant d’exécuter le code
 	const token = localStorage.getItem("token"); //On vérifie si l’utilisateur est connecté (via le token)
-	const modifier = document.querySelector(".modifier-section"); //on séléctionne le bouton modifier
+	
 
-	if (!token && modifier) { //Si pas de token, on cache .modifier-section
-		modifier.style.display = "none";
+	if (!token && modifierBtn) { //Si pas de token, on cache .modifier-section
+		modifierBtn.style.display = "none";
 	}
-});
+
+
 // Affichage dynamique des projets dans la modale
 function renderModalGallery(works) { //On récupère les travaix et on les affiche dynamiquement dans la modale
     const modalGallery = document.querySelector(".modal-gallery"); //on séléctionne la gallerie de la modale
@@ -315,7 +415,7 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
 }
 
 
-// Fonction pour charger les catégories dans le formulaire de la modale
+// Fonction pour charger les CATÉGORIES dans le FORMULAIRE de la MODALE
     async function loadCategoriesForForm() {
   try {
     const response = await fetch("http://localhost:5678/api/categories");
@@ -324,16 +424,24 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
     const select = document.getElementById("category");
     select.innerHTML = ""; // Vider le select avant d’ajouter les options
 
-      categories.forEach(category => {
-      const option = document.createElement("option");
-      option.value = category.id;
-      option.textContent = category.name;
-      select.appendChild(option);
+    const defaultOption = document.createElement("option");//Gestion du champs catégorie VIDE
+    defaultOption.value = ""; // Valeur vide
+    defaultOption.disabled = true; // Empêche l'utilisateur de la sélectionner après coup
+    defaultOption.selected = true; // La rend sélectionnée par défaut au chargement
+    select.appendChild(defaultOption);
+
+    categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category.id;
+    option.textContent = category.name;
+    select.appendChild(option);
     });
+    checkFormValidity(); // Appel de checkFormValidity() après le chargement des catégories
   } catch (error) {
     console.error("Erreur lors du chargement des catégories dans le formulaire :", error);
   }
 }
+
 // CHARGEMENT DES CATÉGORIES DANS LA MODALE quand elle s’ouvre
 
 //Envoi du formulaire d’ajout
@@ -341,15 +449,14 @@ document.getElementById("add-work-form").addEventListener("submit", async (e) =>
   e.preventDefault(); // empêche rechargement
 
   const token = localStorage.getItem("token");
-  const imageInput = document.getElementById("image");
-  const titleInput = document.getElementById("title");
-  const categorySelect = document.getElementById("category");
-  const errorMessage = document.getElementById("form-error");
+  
 
-  // Vérification des champs
-  if (!imageInput.files[0] || !titleInput.value || !categorySelect.value) {
-    errorMessage.textContent = "Tous les champs sont requis.";
-    return;
+  // Vérification des champs du FORMULAIRE
+   // Si le bouton VALIDER est disabled, cela signifie que les champs ne sont pas tous valides
+  // C'est une double sécurité, car le bouton ne devrait pas être cliquable si disabled
+  if (submitButton.disabled) { 
+    formError.textContent = "Veuillez remplir tous les champs requis.";
+    return; // Arrête l'envoi si le formulaire n'est pas valide
   }
 
   // Construction du FormData
@@ -368,7 +475,7 @@ document.getElementById("add-work-form").addEventListener("submit", async (e) =>
     });
 
     if (response.ok) {
-      errorMessage.textContent = "";
+      formError.textContent = "";
 
       // Recharger la galerie principale
       loadWorks();
@@ -379,14 +486,25 @@ document.getElementById("add-work-form").addEventListener("submit", async (e) =>
 
       // Réinitialiser le formulaire
       document.getElementById("add-work-form").reset();
-      document.getElementById("image-preview").innerHTML = "<span>+</span><p>Ajouter une photo</p>";
+
+      imagePreviewContainer.innerHTML = `<i class="fa-regular fa-image upload-icon"></i>
+        <span>+ Ajouter photo</span>
+        <p>jpg, png : 4mo max</p>
+        <img id="preview-image" src="#" alt="Prévisualisation du projet" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+        <input type="file" id="image" name="image" accept="image/png, image/jpeg" required />
+    `;
+    imageInput = document.getElementById("image"); 
+    setupImageInputHandler(); 
+
+      checkFormValidity(); //Appel checkFormValidity() après soumission réussie et réinitialisation
+
 
     } else {
-      errorMessage.textContent = "Échec de l’ajout du projet.";
+      formError.textContent = "Échec de l’ajout du projet.";
     }
 
   } catch (error) {
     console.error("Erreur lors de l'envoi :", error);
-    errorMessage.textContent = "Une erreur est survenue.";
+    formError.textContent = "Une erreur est survenue.";
   }
 });
