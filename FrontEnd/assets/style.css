@@ -144,8 +144,9 @@ li:hover {
 }
 #introduction img {
 	display: block;
-	margin: auto;
+	margin-right: auto;
 	width: 80%;
+	margin-left: 0;
 }
 
 #introduction article {
