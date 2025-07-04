@@ -53,6 +53,43 @@ body {
 	font-family: 'Work Sans' ;
 	font-size: 14px;
 }
+
+/* --- BANDEAU MODE ÉDITION --- */
+.edit-banner {
+    position: fixed; /* pour qu'il reste sur place quand on scroll  */
+    top: 0; /* Il est collé en haut de la fenêtre */
+    left: 0;
+    width: 100%;
+    height: 40px; /* hauteur du bandeau */
+    background-color: #000; 
+    color: white; 
+    display: flex; /* pour centrer l'icône et le texte */
+    justify-content: center; /* centrage horizontal */
+    align-items: center; /* centrage vertical */
+    gap: 10px; /* espacement entre l'icône et le texte */
+    z-index: 1001; /* assure qu'il est au-dessus de tout le reste (la modale a 1000) */
+    /* display par défaut caché, géré par js */
+    display: none; 
+}
+
+/* mise à jour : cible l'icône svg directement dans le bandeau */
+.edit-banner .edit-icon-banner {
+    width: 15.58px; 
+    height: 15.58px;
+    filter: brightness(0) invert(1);
+}
+
+.edit-banner span {
+    font-family: 'Work Sans', sans-serif; 
+    font-size: 14px; 
+    font-weight: 400; 
+}
+
+/* --- ajustement du body lorsque le bandeau est visible --- */
+body.logged-in-mode {
+    margin-top: 80px; /* décale le contenu de la page vers le bas de la hauteur de 80 px */
+}
+
 header {
 	display: flex;
 	justify-content: space-between;

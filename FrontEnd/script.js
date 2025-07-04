@@ -9,10 +9,13 @@ var categories = []; // 'categories' est défini ici
     // Appel initial des fonctions de la modale
 
     // Déclaration des éléments de la modale
-    const modal = document.getElementById("modal");
-    const modalWrapper = document.querySelector(".modal-wrapper");
-    const closeBtn = document.querySelector(".modal-close");
-    const modifierBtn = document.querySelector(".modifier-section"); 
+    const modal = document.getElementById("modal"); // la modale "carré blanc avec le texte"
+    const modalWrapper = document.querySelector(".modal-wrapper"); // fond transparent autour de la modale
+    const closeBtn = document.querySelector(".modal-close"); // la fermeture de la modale
+    const modifierBtn = document.querySelector(".modifier-section"); // bouton modifier
+    const filtersContainer = document.querySelector(".filters"); // filtres
+    const editBanner = document.querySelector(".edit-banner"); // Sbandeau noir mode edition
+    const body = document.body; // Sélection de la balise body
     
     // Déclaration des éléments pour la navigation entre les vues de la modale
     const addPhotoBtn = document.querySelector(".modal-add-btn");
@@ -30,7 +33,7 @@ var categories = []; // 'categories' est défini ici
     const formError = document.getElementById("form-error");
     const imagePreviewContainer = document.getElementById("image-preview-container"); 
     const previewImage = document.getElementById("preview-image"); 
-    const filtersContainer = document.querySelector(".filters"); 
+    
 
     // J'affiche dynamiquement les projets dans la galerie
     function renderGallery(works) {
@@ -337,33 +340,51 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
             });
         }
         
-        // Masquer les filtres
+        // Masque la section des filtres pour les utilisateurs connectés
         if (filtersContainer) {
-            filtersContainer.style.display = "none";
+            filtersContainer.style.display = "none"; // cache les boutons de filtre
         }
 
-        // Afficher la section de modification
+        // Affiche la section de modification (bouton "modifier") pour les utilisateurs connectés
         if (modifierSection) {
-            modifierSection.style.display = "flex";
+            modifierSection.style.display = "flex"; // rend le bouton "modifier" visible
         }
+
+            // Affiche le Bandeau mode édition
+    if (editBanner) {
+        editBanner.style.display = "flex"; // affiche le bandeau
+    }
+
+    body.classList.add("logged-in-mode"); // Ajout de la classe au body pour déclarer le contenu
+   
+
     } else {
-        // Si déconnecté : S'assurer que le lien "login" est correct et que les éléments de l'interface utilisateur sont masqués
+        // si aucun jeton n'est présent, l'utilisateur est déconnecté
         if (loginLink) {
             loginLink.textContent = "login";
-            loginLink.href = "login.html"; // S'assurer qu'il pointe vers la page de connexion
-            // Pas besoin d'écouteur de clic ici, l'attribut href gère la navigation
+            loginLink.href = "login.html"; // pointe vers la page de connexion
+            // Pas besoin d'écouteur de clic à cet endroit, l'attribut href gère la navigation
         }
 
-        // S'assurer que les filtres sont visibles
+        // S'assure que les filtres sont visibles pour les utilisateurs déconnectés
         if (filtersContainer) {
-            filtersContainer.style.display = "flex";
+            filtersContainer.style.display = "flex"; // affiche les boutons de filtre
         }
 
-        // S'assurer que la section de modification est masquée
+        // s'assure que la section de modification est masquée pour les utilisateurs déconnectés
         if (modifierSection) {
-            modifierSection.style.display = "none";
+            modifierSection.style.display = "none"; // cache le bouton "modifier"
         }
+
+        // s'assure que le bandeau "mode édition" est masqué pour les utilisateurs déconnectés
+    if (editBanner) {
+        editBanner.style.display = "none"; // masque le bandeau
     }
+
+    body.classList.remove("logged-in-mode"); // Retire la classe du body pour annuler le décalage
+    
+}
+    
 
         // Ouverture de la modale (au clic sur le bouton "modifier")
         modifierBtn.addEventListener("click", async () => {
@@ -520,6 +541,7 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
 loadWorks();
 
 });
+
 
 
 
