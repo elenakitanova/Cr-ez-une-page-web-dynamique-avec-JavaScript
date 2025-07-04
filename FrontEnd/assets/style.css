@@ -515,9 +515,10 @@ footer nav ul {
 }
 
 /* Texte "+ Ajouter photo" (qui est le span dans le label) */
-#image-preview-container span { /* Cible le <span> qui contient le texte "Ajouter photo" */
-    width: 173px;
-    height: 36px;
+#image-preview-container span { /* Cible le <span> qui contient le texte "+Ajouter une photo" */
+    width: 173px; /* hauteur du bouton qui contient le texte */
+    height: 36px; /* largeur du bouton qui contient le texte */
+	line-height: 36px;
     flex-shrink: 0;
     border-radius: 50px;
     background: #CBD6DC; /* Arrière-plan gris */
@@ -529,6 +530,7 @@ footer nav ul {
     justify-content: center;
     align-items: center;
     margin-top: 10px; /* Espace sous l'icône */
+	text-align: center;
 }
 
 /* Texte "jpg, png : 4mo max" */
