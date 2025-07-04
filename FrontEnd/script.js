@@ -385,7 +385,6 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
     
 }
     
-
         // Ouverture de la modale (au clic sur le bouton "modifier")
         modifierBtn.addEventListener("click", async () => {
         modal.style.display = "flex"; //la modale principale (#modal) est rendue visible (display: flex;)
@@ -511,18 +510,22 @@ function renderModalGallery(works) { //On récupère les travaix et on les affic
       // Recharger la galerie principale
       await loadWorks(); //Attendre le rechargement de la galerie avant de rafraîchir la modale (Formulaire d'ajout)
 
+
       // Revenir à la vue galerie dans la modale
-      addPhotoView.classList.add("hidden");
-      galleryView.classList.remove("hidden");
-      backBtn.classList.add("hidden"); //Ajout pour cacher la flèche après soumission
+      // Ferme complètement la modale et réinitialise la vue par défaut pour la prochaine ouverture
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+
+        // Assure que la modale est sur la vue galerie et la flèche cachée pour la prochaine ouverture
+        galleryView.classList.remove("hidden"); // S'assure que la vue galerie est visible
+        addPhotoView.classList.add("hidden");   // S'assure que la vue ajout est cachée
+        backBtn.classList.add("hidden");        // S'assure que la flèche de retour est cachée
 
       // Réinitialiser le formulaire
       document.getElementById("add-work-form").reset();
-
       resetImagePreview(); // Réinitialise la prévisualisation visuelle de l'image de la MODALE
-
       checkFormValidity(); //Appel checkFormValidity() après soumission réussie et réinitialisation
-       
+
       alert("Projet ajouté avec succès !"); // Ajout d'une alerte pour confirmer le succès
 
 
