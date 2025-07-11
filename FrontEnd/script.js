@@ -38,13 +38,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const previewImage = document.getElementById("preview-image"); // L'élément <img> où l'image sélectionnée sera prévisualisée
 
 
+// ---
 // SECTION 2 : FONCTIONS PRINCIPALES D'AFFICHAGE DE LA GALERIE ET GESTION DES FILTRES
 
     // Fonction pour afficher dynamiquement les projets dans la galerie principale de la page d'accueil
-    function renderGallery() {
+    function renderGallery(projectsToDisplay) { // J'ajoute le paramètre 'projectsToDisplay'
         gallery.innerHTML = ""; // Je vide la galerie pour éviter les duplicatas à chaque mise à jour
+
+        // J'utilise le tableau passé en paramètre, ou le tableau global 'works' par défaut si aucun n'est fourni
+        const finalProjects = projectsToDisplay || works; // Définit le tableau à parcourir
+
         // Je parcours chaque projet ('work') du tableau 'works'
-        works.forEach(work => {
+        finalProjects.forEach(work => {
             const figure = document.createElement("figure"); // Je crée une balise <figure> pour chaque projet
             const img = document.createElement("img"); // Je crée l'élément <img> pour l'image du projet
             img.src = work.imageUrl; // Je définis la source de l'image avec l'URL du projet
@@ -65,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch("http://localhost:5678/api/works"); // J'envoie la requête pour obtenir la liste des projets
             works = await response.json(); // Je convertis la réponse en objet JavaScript et la stocké dans 'works'
 
-            renderGallery(); // J'affiche les projets dans la galerie principale
+            renderGallery(works); // J'affiche les projets dans la galerie principale
             loadCategories(); // Je charge également les catégories et les filtres associés
         } catch (error) {
             console.error("Erreur lors du chargement des projets :", error); // Gestion des erreurs de chargement
@@ -79,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         activeBtn.classList.add("active"); // J'ajoute la classe 'active' au bouton cliqué pour le mettre en surbrillance
     }
 
+// ---
 // SECTION 3 : GESTION DES FILTRES DE LA GALERIE PRINCIPALE
 
     // Fonction asynchrone pour charger et créer dynamiquement les boutons de filtre
@@ -92,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
             allBtn.textContent = "Tous"; // Je définis le texte du bouton
             allBtn.classList.add("filter-btn", "active"); // J'applique les classes CSS et le rend actif par défaut
             allBtn.addEventListener("click", () => { // J'ajoute un écouteur d'événement pour le clic
-                renderGallery(); // Au clic, j'affiche tous les projets sans filtre
+                renderGallery(works); // Au clic, j'affiche tous les projets sans filtre
                 updateActiveButton(allBtn); // Je mets à jour l'état visuel du bouton
             });
             filtersContainer.appendChild(allBtn); // J'insère le bouton "Tous" dans le conteneur des filtres
@@ -115,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+// ---
 // SECTION 4 : FONCTIONS DE GESTION DU FORMULAIRE D'AJOUT DE PHOTO (MODALE 2)
 
     // Fonction pour réinitialiser l'aperçu de l'image et l'état du champ d'upload dans le formulaire
@@ -231,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+// ---
 // SECTION 5 : GESTION DES PROJETS DANS LA MODALE (SUPPRESSION ET AFFICHAGE)
 
     // Fonction pour afficher dynamiquement les projets dans la galerie de la modale
@@ -315,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+// ---
 // SECTION 6 : CONFIGURATION DES ÉCOUTEURS D'ÉVÉNEMENTS ET LOGIQUE D'AFFICHAGE (LOGIN/LOGOUT)
 
     // J'attache les écouteurs d'événements pour la vérification de validité du formulaire d'ajout
@@ -394,10 +403,11 @@ document.addEventListener("DOMContentLoaded", () => {
         body.classList.remove("logged-in-mode"); // Je retire la classe du body pour annuler le décalage
     }
 
+// ---
 // SECTION 7 : GESTION DES INTERFACES DE LA MODALE (OUVERTURE, FERMETURE, NAVIGATION ENTRE VUES)
 
     // Ouverture de la modale lors du clic sur le bouton "Modifier"
-        modifierBtn.addEventListener("click", async () => {
+    modifierBtn.addEventListener("click", async () => {
         modal.style.display = "flex"; // Rend la modale visible
         modal.setAttribute("aria-hidden", "false"); // Améliore l'accessibilité
 
@@ -410,7 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Fermeture de la modale lors du clic sur la croix
-        closeBtn.addEventListener("click", () => {
+    closeBtn.addEventListener("click", () => {
         modal.style.display = "none"; // Masque la modale
         modal.setAttribute("aria-hidden", "true"); // Améliore l'accessibilité
 
@@ -427,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Fermeture de la modale en cliquant en dehors de son contenu principal
-        modal.addEventListener("click", (e) => {
+    modal.addEventListener("click", (e) => {
         // Vérifie si le clic n'est pas sur le contenu blanc de la modale, ni sur la croix, ni sur la flèche de retour
         if (!modalWrapper.contains(e.target) && !e.target.closest('.modal-close') && !e.target.closest('.modal-back')) {
             modal.style.display = "none"; // Masque la modale
@@ -446,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Passage de la première vue (galerie de la modale) à la deuxième vue (ajout de photo)
-        addPhotoBtn.addEventListener("click", () => {
+    addPhotoBtn.addEventListener("click", () => {
         galleryView.classList.add("hidden"); // Masque la vue galerie
         addPhotoView.classList.remove("hidden"); // Affiche la vue formulaire d'ajout
         backBtn.classList.remove("hidden"); // Affiche la flèche de retour
@@ -465,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Retour de la deuxième vue (ajout photo) à la première vue (galerie de la modale)
-        backBtn.addEventListener("click", () => {
+    backBtn.addEventListener("click", () => {
         addPhotoView.classList.add("hidden"); // Masque le formulaire d'ajout
         galleryView.classList.remove("hidden"); // Affiche la galerie de la modale
         backBtn.classList.add("hidden"); // Cache la flèche de retour
@@ -477,6 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkFormValidity(); // Re-vérifie la validité pour réinitialiser l'état du bouton "Valider"
     });
 
+// ---
 // SECTION 8 : GESTION DE LA SOUMISSION DU FORMULAIRE D'AJOUT DE PHOTO
 
     // Gestion de l'envoi du formulaire d'ajout d'un nouveau projet
@@ -552,6 +563,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+// ---
 // SECTION 9 : APPELS INITIAUX AU CHARGEMENT DE LA PAGE
 
     // Je lance le chargement des projets et des catégories dès le départ
